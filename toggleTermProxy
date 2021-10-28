@@ -1,0 +1,59 @@
+# ------------------------------------------------------------------------------------------------------------------------------------------------
+# http proxy     # for terminal, curl,  youtube-dl, aria2c
+# . put toggleTermProxy on PATH
+# . add the following to ~/.profile or ~/.bashrc
+# proxy() { . toggleTermProxy "$@"; }
+# 
+# Usage: 
+#   - proxy 
+#   - proxy 192.168.11.10 
+#   - proxy :8080
+#   - proxy 192.168.11.10:8118
+#
+#  Environment variables PROXY_HOST and PROXY_PORT are honored.
+# ------------------------------------------------------------------------------------------------------------------------------------------------
+
+setProxy() {
+  PROXY_HOST=${PROXY_HOST:-127.0.0.1}
+  PROXY_PORT=${PROXY_PORT:-8118}
+
+  if [ -z "$1" ]; then
+    # $1 is empty
+    proxy=$PROXY_HOST:$PROXY_PORT
+  elif [[ $1 != *":"* ]]; then
+    # $1 is 192.168.11.10,  containing no colon :
+    proxy=$1:$PROXY_PORT
+  elif [[ $1 == :* ]]; then
+    # $1 is :8118,  start with colon: 
+    proxy=$PROXY_HOST$1
+  else
+    proxy=$1
+  fi
+
+  export http_proxy=http://$proxy
+  export https_proxy=$http_proxy
+  #export ftp_proxy=$http_proxy
+  export no_proxy="localhost,127.0.0.1,localaddress,.localdomain.com"
+  echo "export http_proxy=$http_proxy"
+  echo "export https_proxy=$http_proxy"
+  #echo "export ftp_proxy=$http_proxy"
+  echo "export no_proxy=$no_proxy"
+  curl https://httpbin.org/ip
+}
+
+clearProxy() {
+    unset http_proxy https_proxy ftp_proxy no_proxy
+    echo "http_proxy: $http_proxy"
+    echo "https_proxy: $https_proxy"
+    #echo "ftp_proxy: $ftp_proxy"
+    echo "no_proxy: $no_proxy"
+}
+
+
+if [ -z "$http_proxy" ]; then
+  setProxy "$@"
+else
+  clearProxy
+fi
+
+
